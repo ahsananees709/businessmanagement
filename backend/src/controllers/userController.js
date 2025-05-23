@@ -2,6 +2,7 @@ import bcrypt from "bcrypt"
 import jwt from "jsonwebtoken"
 import User from "../../models/User.js"
 import BlackListToken from "../../models/BlackListToken.js"
+import BusinessMembers from "../../models/BusinessMembers.js"
 import sendEmail from "../utils/sendEmail.js"
 import {
   registrationEmail,

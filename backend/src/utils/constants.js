@@ -6,7 +6,12 @@ export const BUSINESS_ROLES = {
     ADMIN: "admin",
     CLIENT: "client",
     EMPLOYEE: "employee"
-  }
+}
+  
+export const TEAM_ROLES = {
+  TEAM_LEAD: "team_lead",
+  TEAM_MEMBER: "team_member"
+};
 
 
 export const {

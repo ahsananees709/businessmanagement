@@ -4,6 +4,7 @@ import User from "../../models/User.js"
 import BusinessMembers from "../../models/BusinessMembers.js"
 import BusinessRoles from "../../models/BusinessRoles.js"
 import BlackListToken from "../../models/BlackListToken.js"
+import TeamMembers from "../../models/TeamMembers.js"
 
 const authentication = async (req, res, next) => {
   try {
@@ -73,6 +74,88 @@ const authorizeBusinessRole = (allowedRoles = []) => {
   };
 };
 
+const authorizeTeamRole = (allowedRoles = []) => {
+  return async (req, res, next) => {
+    try {
+      const userId = req.loggedInUserId;
+      const teamId = req.params.teamId || req.body.teamId;
+
+      if (!teamId) {
+        return errorResponse(res, "Team ID is required", 400);
+      }
+
+      // Find businessMember from user
+      const businessMember = await BusinessMembers.findOne({ user: userId });
+      if (!businessMember) {
+        return errorResponse(res, "Business member not found", 403);
+      }
+
+      // Find team membership
+      const member = await TeamMembers.findOne({ team: teamId, businessMember: businessMember._id }).populate('role');
+
+      if (!member) {
+        return errorResponse(res, "You are not a member of this team", 403);
+      }
+
+      const userRole = member.role?.name;
+      if (!allowedRoles.includes(userRole)) {
+        return errorResponse(res, `Access denied: must be ${allowedRoles.join(' or ')}`, 403);
+      }
+
+      next();
+    } catch (error) {
+      return errorResponse(res, error.message, 500);
+    }
+  };
+};
+
+const authorizeBusinessOrTeamRole = (businessRoles = [], teamRoles = []) => {
+  return async (req, res, next) => {
+    try {
+      const userId = req.loggedInUserId;
+      const businessId = req.params.businessId || req.body.businessId;
+      const teamId = req.params.teamId || req.body.teamId;
+
+      let authorized = false;
+
+      // Check business role
+      if (businessId) {
+        const businessMember = await BusinessMembers.findOne({ user: userId, business: businessId }).populate('role');
+        const businessRole = businessMember?.role?.name;
+        if (businessRoles.includes(businessRole)) {
+          authorized = true;
+        }
+      }
+
+      // Check team role
+      if (!authorized && teamId) {
+        const businessMember = await BusinessMembers.findOne({ user: userId });
+        const teamMember = await TeamMembers.findOne({
+          team: teamId,
+          businessMember: businessMember?._id,
+        }).populate('role');
+
+        const teamRole = teamMember?.role?.name;
+        if (teamRoles.includes(teamRole)) {
+          authorized = true;
+        }
+      }
+
+      if (!authorized) {
+        return errorResponse(
+          res,
+          `Access denied: must be ${[...businessRoles, ...teamRoles].join(' or ')}`,
+          403
+        );
+      }
+
+      next();
+    } catch (error) {
+      return errorResponse(res, error.message, 500);
+    }
+  };
+};
+
 const checkUserIsAvailableAndVerified = async (req, res, next) => {
   try {
     let email = req?.body?.email || req?.params?.email;
@@ -95,4 +178,4 @@ const checkUserIsAvailableAndVerified = async (req, res, next) => {
 };
 
 
-export { authentication, checkUserIsAvailableAndVerified, authorizeBusinessRole }
+export { authentication, checkUserIsAvailableAndVerified, authorizeBusinessRole, authorizeTeamRole, authorizeBusinessOrTeamRole }

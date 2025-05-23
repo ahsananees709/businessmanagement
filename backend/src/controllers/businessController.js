@@ -121,7 +121,7 @@ export const updateBusiness = async (req, res) => {
     try {
         const businessId = req.params.id
         const { name, type, description } = req.body;
-        const business = await Business.findById({ businessId })
+        const business = await Business.findById( businessId )
         
         let logo = business?.logo;
         // Update logo if available
@@ -297,5 +297,38 @@ export const joinBusinessByInvite = async (req, res) => {
     } catch (error) {
         console.error(error);
         return errorResponse(res, "Invalid or expired token", 400);
+    }
+};
+
+export const getBusinessMemberById = async (req, res) => {
+    try {
+        const businessId = req.params.businessId;
+        const memberId = req.params.memberId;
+
+        const member = await BusinessMembers.findOne({ business: businessId, user: memberId })
+            .populate('user')
+            .populate('role');
+        
+        if (!member) {
+            return errorResponse(res, 'Member not found', 404);
+        }
+
+        return successResponse(res, 'Business member fetched successfully', member);
+    } catch (error) {
+        return errorResponse(res, error.message, 500);
+    }
+};
+
+export const getAllBusinessMembers = async (req, res) => {
+    try {
+        const businessId = req.params.businessId;
+
+        const members = await BusinessMembers.find({ business: businessId })
+            .populate('user', 'fullName email profilePicture')
+            .populate('role', 'name');
+
+        return successResponse(res, 'Business members fetched successfully', members);
+    } catch (error) {
+        return errorResponse(res, error.message, 500);
     }
 };

@@ -49,47 +49,11 @@ const getNewVerificationLinkSchema = z.object({
   email: z.string().min(1).email(),
 })
 
-const loginUserSchema = z.object({
-  email: z.string().min(1).email(),
-  password: z.string().min(8),
-})
-
-const updatePasswordSchema = z
-  .object({
-    oldPassword: z.string().min(8),
-   
-  })
-  .refine(data => data.oldPassword !== data.newPassword, {
-    message: "New password must be different from the old password",
-  })
-
-const resetPasswordLinkSchema = z.object({
-  email: z.string().email("Invalid email").min(1).trim(),
-})
-
-const resetPasswordSchema = z.object({
-  token: z.string().min(1, "Token is required"),
-
-})
-
-const updateUserSchema = z.object({
-  fullName: z
-    .string()
-    .trim()
-    .min(1)
-    .regex(/^[A-Za-z\s]+$/, { message: "Only alphabets are allow!" })
-    .optional(),
-})
 
 export {
-    createBusinessSchema,
+  createBusinessSchema,
   getBusinessByIdSchema,
   updateBusinessSchema,
-    deleteBusinessByIdSchema,
-  getNewVerificationLinkSchema,
-  loginUserSchema,
-  updatePasswordSchema,
-  resetPasswordLinkSchema,
-  resetPasswordSchema,
-  updateUserSchema,
+  deleteBusinessByIdSchema,
+  getNewVerificationLinkSchema
 }

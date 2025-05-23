@@ -1,12 +1,14 @@
 import express from 'express';
 import {
-  createBusiness,
-  getBusinessById,
-  getAllBusinessesOfUser,
-  updateBusiness,
-  deleteBusiness,
-  sendBusinessInvite,
-  joinBusinessByInvite
+    createBusiness,
+    getBusinessById,
+    getAllBusinessesOfUser,
+    updateBusiness,
+    deleteBusiness,
+    sendBusinessInvite,
+    joinBusinessByInvite,
+    getBusinessMemberById,
+    getAllBusinessMembers
 } from '../controllers/businessController.js';
 import { createBusinessSchema, deleteBusinessByIdSchema, getBusinessByIdSchema, sendBusinessInviteSchema, updateBusinessSchema } from '../validations/businessValidations.js';
 import { authentication, authorizeBusinessRole } from '../middlewares/authenticationMiddlewares.js';
@@ -64,10 +66,23 @@ router.post(
     sendBusinessInvite
   );
 
-  router.post(
+router.post(
     '/invite/join',
     authentication,
     joinBusinessByInvite
-  );
+);
+  
+router.get(
+    '/:businessId/members',
+    authentication,
+    authorizeBusinessRole([BUSINESS_ROLES.SUPER_ADMIN, BUSINESS_ROLES.ADMIN]),
+    getAllBusinessMembers
+);
+
+router.get('/:businessId/members/:memberId',
+    authentication,
+    authorizeBusinessRole([BUSINESS_ROLES.SUPER_ADMIN, BUSINESS_ROLES.ADMIN]),
+    getBusinessMemberById
+);
 
 export default router;
